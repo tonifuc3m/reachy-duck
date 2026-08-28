@@ -15,11 +15,13 @@ from fastapi import FastAPI, Request, Response
 
 from reachy_mini import ReachyMini, ReachyMiniApp
 from reachy_duck import app_lifecycle
+from reachy_duck.notes import notes_path_for_instance
 from reachy_duck.utils import (
     parse_args,
     setup_logger,
     log_connection_troubleshooting,
 )
+from reachy_duck.memory import memory_path_for_instance, persistent_data_directory
 
 
 if TYPE_CHECKING:
@@ -101,6 +103,8 @@ def run(
     logger = setup_logger(args.debug)
     logger.info("Starting Reachy Mini Conversation App")
     set_instance_path(instance_path)
+    logger.info("Persistent memory file: %s", memory_path_for_instance(instance_path))
+    logger.info("Persistent notes file: %s", notes_path_for_instance(instance_path))
     startup_settings = StartupSettings()
 
     if instance_path is not None:
@@ -358,7 +362,7 @@ class ReachyDuck(ReachyMiniApp):  # type: ignore[misc]
 
         args, _ = parse_args()
 
-        instance_path = self._get_instance_path().parent
+        instance_path = str(persistent_data_directory().parent)
         run(
             args,
             robot=reachy_mini,

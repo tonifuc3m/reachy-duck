@@ -24,6 +24,13 @@ class ForgetMemoryResult:
     candidates: tuple[str, ...]
 
 
+def persistent_data_directory() -> Path:
+    """Return the install-independent user data directory."""
+    data_home = os.getenv("XDG_DATA_HOME")
+    data_root = Path(data_home).expanduser() if data_home else Path.home() / ".local" / "share"
+    return data_root / "reachy_duck" / DATA_DIRECTORY_NAME
+
+
 def data_directory_for_instance(instance_path: str | Path | None = None) -> Path:
     """Return the writable Markdown data directory for this app instance."""
     if instance_path is not None:
@@ -32,9 +39,7 @@ def data_directory_for_instance(instance_path: str | Path | None = None) -> Path
     if (PROJECT_ROOT / "pyproject.toml").is_file():
         return PROJECT_ROOT / DATA_DIRECTORY_NAME
 
-    data_home = os.getenv("XDG_DATA_HOME")
-    data_root = Path(data_home).expanduser() if data_home else Path.home() / ".local" / "share"
-    return data_root / "reachy_duck" / DATA_DIRECTORY_NAME
+    return persistent_data_directory()
 
 
 def memory_path_for_instance(instance_path: str | Path | None = None) -> Path:

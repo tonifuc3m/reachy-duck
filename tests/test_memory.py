@@ -8,7 +8,14 @@ import pytest
 import reachy_duck.memory as memory_mod
 import reachy_duck.prompts as prompts_mod
 from reachy_duck.notes import add_note, read_notes, notes_path_for_instance
-from reachy_duck.memory import remember, list_memory_facts, forget_memory_fact, memory_path_for_instance
+from reachy_duck.memory import (
+    remember,
+    list_memory_facts,
+    forget_memory_fact,
+    memory_path_for_instance,
+    persistent_data_directory,
+    data_directory_for_instance,
+)
 from reachy_duck.tools.forget import Forget
 from reachy_duck.tools.add_note import AddNote
 from reachy_duck.tools.remember import Remember
@@ -54,6 +61,25 @@ def test_direct_storage_apis_use_default_data_directory(tmp_path: Path, monkeypa
     assert "Buy milk tomorrow" in read_notes()
     assert (tmp_path / "data" / "MEMORY.md").is_file()
     assert (tmp_path / "data" / "NOTES.md").is_file()
+
+
+def test_installed_app_uses_persistent_user_data_directory(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """An installed app should keep data outside replaceable site-packages."""
+    monkeypatch.setattr(memory_mod, "PROJECT_ROOT", tmp_path / "site-packages")
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "user-data"))
+
+    assert data_directory_for_instance() == tmp_path / "user-data" / "reachy_duck" / "data"
+
+
+def test_launcher_data_directory_ignores_editable_checkout(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    """Daemon-launched apps should persist outside an editable checkout."""
+    monkeypatch.setattr(memory_mod, "PROJECT_ROOT", tmp_path / "checkout")
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "user-data"))
+    (tmp_path / "checkout").mkdir()
+    (tmp_path / "checkout" / "pyproject.toml").touch()
+
+    assert data_directory_for_instance() == tmp_path / "checkout" / "data"
+    assert persistent_data_directory() == tmp_path / "user-data" / "reachy_duck" / "data"
 
 
 def test_forget_removes_matching_markdown_memory(tmp_path: Path) -> None:

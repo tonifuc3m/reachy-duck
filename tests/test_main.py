@@ -40,3 +40,25 @@ def test_inactivity_timeout_thread_closes_stream_manager_without_sleep_callback(
     thread.join(timeout=1.0)
     assert not thread.is_alive()
     stream_manager.close.assert_called_once_with()
+
+
+def test_wireless_launcher_uses_persistent_user_data(tmp_path, monkeypatch) -> None:
+    """The managed app should keep state outside its replaceable installation."""
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path))
+    monkeypatch.setattr(main_mod, "parse_args", lambda: (SimpleNamespace(), []))
+    run = MagicMock()
+    monkeypatch.setattr(main_mod, "run", run)
+
+    app = object.__new__(main_mod.ReachyDuck)
+    app.settings_app = None
+    robot = MagicMock()
+    stop_event = threading.Event()
+    app.run(robot, stop_event)
+
+    run.assert_called_once_with(
+        SimpleNamespace(),
+        robot=robot,
+        app_stop_event=stop_event,
+        settings_app=None,
+        instance_path=str(tmp_path / "reachy_duck"),
+    )
