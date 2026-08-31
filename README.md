@@ -178,10 +178,13 @@ ssh "pollen@${ROBOT_HOST}" "/venvs/apps_venv/bin/python -c \"from reachy_duck.me
 
 ## Google Calendar
 
-Reachy can create and read timed events in the authenticated account's primary Google Calendar. This is deliberately
+Reachy can create, read, and update timed events in the authenticated account's Google calendars. This is deliberately
 separate from Markdown memory and notes: a request to write ordinary information down remains a note, while a request
 with a definite appointment or reminder time becomes a calendar event. The default timezone is `Europe/Madrid`; set
-`REACHY_DUCK_TIMEZONE` in the private instance `.env` to another IANA timezone when needed.
+`REACHY_DUCK_TIMEZONE` in the private instance `.env` to another IANA timezone when needed. Events can have a
+description, reminders, a Google Meet link, a friendly Google color, email attendees, and a structured recurrence.
+When the user explicitly invites attendees, Reachy calls Google Calendar with `sendUpdates="all"`; otherwise it does
+not send invitation updates.
 
 ### Google Cloud setup
 
@@ -192,7 +195,8 @@ with a definite appointment or reminder time becomes a calendar event. The defau
 4. In **Google Auth platform → Clients**, create an OAuth client of type **Desktop app**, then download its JSON file.
    Do not commit this file.
 
-The app requests only `https://www.googleapis.com/auth/calendar.events`, which permits it to create and read events.
+The app requests `https://www.googleapis.com/auth/calendar.events` to create, update, move, and read events, plus
+`https://www.googleapis.com/auth/calendar.calendarlist.readonly` to list and resolve the user's calendar names.
 Google's [Calendar Python quickstart](https://developers.google.com/workspace/calendar/api/quickstart/python) documents
 the required client libraries and desktop OAuth client; the [installed-app OAuth guide](https://developers.google.com/identity/protocols/oauth2/native-app)
 documents the loopback callback flow used below.
@@ -264,11 +268,21 @@ Example voice checks:
 - `Remind me tomorrow at 19:00 to buy milk.`
 - `I have the dentist Friday at 18:00.`
 - `What do I have tomorrow?`
+- `What calendars do I have?`
+- `Every Monday at 9 add team planning.`
+- `Repeat this every month until December.`
+- `Put tomorrow's dentist appointment in Personal.`
+- `Invite alice@example.com and bob@example.com.`
+- `Make the meeting blue.`
+- `Change the description to Discuss Q4 budget.`
 - `Write down that I need milk.`
 - `Remember that I use pytest.`
 
-For a materially ambiguous request, Reachy should ask one short clarification before creating an event. It should not
-create an event for ordinary notes.
+For a materially ambiguous request, Reachy should ask one short clarification before creating or changing an event. It
+does not guess an attendee email, calendar, event match, date/time, or whether a recurring occurrence means this event
+or the whole series. Google Calendar does not safely expose a single "this and future" update in this integration, so
+Reachy asks for one of the supported scopes instead. Moving uses Google's `events.move` operation and is limited by
+Google to movable default events. It should not create an event for ordinary notes.
 
 Stop the app when the test is complete:
 

@@ -24,6 +24,7 @@ class ListCalendarEvents(Tool):
         "properties": {
             "start": {"type": "string", "description": "ISO-8601 interval start with UTC offset."},
             "end": {"type": "string", "description": "ISO-8601 interval end with UTC offset."},
+            "calendar": {"type": "string", "description": "Calendar ID or exact name; defaults to primary."},
             "timezone": {"type": "string", "description": "Optional IANA timezone, e.g. Europe/Madrid."},
         },
         "required": ["start", "end"],
@@ -35,6 +36,7 @@ class ListCalendarEvents(Tool):
             events = list_calendar_events(
                 start=str(kwargs.get("start", "")),
                 end=str(kwargs.get("end", "")),
+                calendar=kwargs.get("calendar"),
                 timezone_name=kwargs.get("timezone"),
                 instance_path=deps.instance_path,
             )
