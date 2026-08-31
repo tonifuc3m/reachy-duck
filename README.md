@@ -33,6 +33,121 @@ add_note("Buy milk tomorrow")
 print(read_notes())
 ```
 
+## Daily use: wake and sleep
+
+On Reachy Mini Wireless, normal daily use does **not** shut down Linux. Power Reachy on once; the Wireless daemon
+should boot with Reachy asleep. Touch either antenna to wake Reachy and start the configured startup app, then talk
+normally. When you are done, say `Good night`, `Reachy, go to sleep`, `You can sleep now`, or `Stop for now`.
+Reachy Duck uses the template's official `go_to_sleep` tool: it performs Reachy's sleep movement and requests that the
+daemon stop the managed app. Linux, the daemon, `MEMORY.md`, and `NOTES.md` remain running/preserved. Touch an antenna
+later to start a new Duck session. Use the normal device/system shutdown mechanism only when you really want to turn
+the device off.
+
+The three distinct states are:
+
+| State | Linux | Reachy daemon | Reachy Duck | Reachy |
+| --- | --- | --- | --- | --- |
+| Fully powered off | off | off | off | off |
+| Powered on, sleeping | on | on | off | asleep / motors limp |
+| Active | on | on | on | awake and listening |
+
+The intended daily transition is `sleeping --antenna--> active --“Good night”--> sleeping`; it is not a Linux shutdown.
+
+### Configure the Wireless startup app
+
+This requires the current official Wireless daemon API, which exposes `/api/apps/startup-app`. First inspect the exact
+robot version and service; do not add daemon command-line flags or edit its unit file:
+
+```bash
+ROBOT_HOST=reachy-mini.local
+
+curl --fail --silent --show-error "http://${ROBOT_HOST}:8000/api/daemon/status"
+curl --fail --silent --show-error "http://${ROBOT_HOST}:8000/api/apps/list-available/installed"
+curl --fail --silent --show-error "http://${ROBOT_HOST}:8000/api/apps/startup-app"
+ssh "pollen@${ROBOT_HOST}" 'systemctl cat reachy-mini-daemon.service; systemctl is-active reachy-mini-daemon.service'
+```
+
+After `reachy_duck` appears in the installed-app list, select it persistently:
+
+```bash
+curl --fail --silent --show-error -X PUT "http://${ROBOT_HOST}:8000/api/apps/startup-app" \
+  -H 'Content-Type: application/json' \
+  -d '{"startup_app":"reachy_duck"}'
+curl --fail --silent --show-error "http://${ROBOT_HOST}:8000/api/apps/startup-app"
+```
+
+The daemon persists only its `startup_app` key in its per-user configuration (normally
+`/home/pollen/.config/reachy_mini/daemon_config.json`), so this survives reboots and app updates. To disable it, set
+`null`; to replace it, send the installed app's other name instead:
+
+```bash
+curl --fail --silent --show-error -X PUT "http://${ROBOT_HOST}:8000/api/apps/startup-app" \
+  -H 'Content-Type: application/json' \
+  -d '{"startup_app":null}'
+```
+
+If the startup-app endpoint returns 404, the installed daemon predates this Wireless feature. Do not invent a polling
+loop or edit the systemd daemon arguments: update Reachy Mini through its supported update path first, then repeat the
+inspection above. The current official implementation is Wireless-specific: it watches antenna joint displacement
+while the managed app slot is free, uses either antenna, and treats a physical push of about 0.25 rad (about 14°) from
+the idle position as a touch. It rearms after returning within about 0.10 rad (about 6°), polls at 0.1 s while idle,
+and ignores commanded antenna motion. It wakes a sleeping robot first; if it is already awake, it plays the wake cue
+and starts the app. If an app or remote managed session already owns the slot, the gesture does nothing and does not
+restart or replace that session.
+
+### First physical lifecycle verification
+
+Use two terminals. In the first, observe daemon and app logs:
+
+```bash
+ROBOT_HOST=reachy-mini.local
+ssh "pollen@${ROBOT_HOST}" 'sudo journalctl -u reachy-mini-daemon.service -f'
+```
+
+In the second, configure and inspect the startup app as above, then reboot through the normal device/system procedure.
+After the robot returns to the network, verify that the daemon is up but no app is running:
+
+```bash
+curl --fail --silent --show-error "http://${ROBOT_HOST}:8000/api/daemon/status"
+curl --fail --silent --show-error "http://${ROBOT_HOST}:8000/api/apps/current-app-status"
+curl --fail --silent --show-error "http://${ROBOT_HOST}:8000/api/apps/startup-app"
+ssh "pollen@${ROBOT_HOST}" 'cat /home/pollen/.config/reachy_mini/daemon_config.json; ls -l /home/pollen/.local/share/reachy_duck/data/'
+```
+
+1. Confirm Reachy is quiet/asleep after the physical power-on and daemon boot.
+2. Push either antenna away from its resting position once, then let it return; do not hold it or move both repeatedly.
+3. Confirm Reachy wakes, `reachy_duck` becomes `running`, and the logs show its realtime session starting.
+4. Say: `Hello Reachy.` Confirm a normal voice response.
+5. Say: `Remember that my test word is pineapple.` Confirm the save acknowledgement.
+6. Say: `Good night.` Confirm the short acknowledgement (if audible), sleep pose, and that `current-app-status` becomes
+   `null`/not running. Linux and `reachy-mini-daemon` must still be active.
+7. Touch either antenna again. Confirm Duck starts again, then ask: `What is my test word?` It should answer
+   `pineapple`.
+8. Perform a full normal reboot. Once the daemon is up and Reachy is asleep, touch an antenna, wait for Duck to start,
+   and ask the same question again.
+
+At every stop/start, antenna wake, daemon restart, and normal reboot, confirm the persistent files remain intact:
+
+```bash
+ssh "pollen@${ROBOT_HOST}" 'cat /home/pollen/.local/share/reachy_duck/data/MEMORY.md; printf "\\n--- NOTES ---\\n"; cat /home/pollen/.local/share/reachy_duck/data/NOTES.md'
+```
+
+If the daemon launcher sets `XDG_DATA_HOME`, resolve rather than guess the paths:
+
+```bash
+ssh "pollen@${ROBOT_HOST}" '/venvs/apps_venv/bin/python -c "from reachy_duck.memory import persistent_data_directory; p = persistent_data_directory(); print(p / '\''MEMORY.md'\''); print(p / '\''NOTES.md'\'')"'
+```
+
+### Manual app control for debugging
+
+For debugging only, manually start or stop the managed app; this bypasses neither the daemon nor its single-app lock:
+
+```bash
+curl --fail --silent --show-error -X POST "http://${ROBOT_HOST}:8000/api/apps/start-app/reachy_duck"
+curl --fail --silent --show-error -X POST "http://${ROBOT_HOST}:8000/api/apps/stop-current-app"
+curl --fail --silent --show-error "http://${ROBOT_HOST}:8000/api/apps/current-app-status"
+```
+
 ## First Reachy Mini Wireless Test
 
 ### Recommended architecture
