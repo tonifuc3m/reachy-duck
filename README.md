@@ -176,6 +176,69 @@ the Wireless launcher instead of guessing:
 ssh "pollen@${ROBOT_HOST}" "/venvs/apps_venv/bin/python -c \"from reachy_duck.memory import persistent_data_directory; root = persistent_data_directory(); print(root / 'MEMORY.md'); print(root / 'NOTES.md')\""
 ```
 
+## Google Calendar
+
+Reachy can create and read timed events in the authenticated account's primary Google Calendar. This is deliberately
+separate from Markdown memory and notes: a request to write ordinary information down remains a note, while a request
+with a definite appointment or reminder time becomes a calendar event. The default timezone is `Europe/Madrid`; set
+`REACHY_DUCK_TIMEZONE` in the private instance `.env` to another IANA timezone when needed.
+
+### Google Cloud setup
+
+1. Create or select a project in the [Google Cloud console](https://console.cloud.google.com/).
+2. Enable **Google Calendar API** for that project.
+3. Configure the OAuth consent screen. For a personal Workspace account choose **Internal**; for a personal consumer
+   account choose **External** and add your Google account as a test user while the app is in testing.
+4. In **Google Auth platform → Clients**, create an OAuth client of type **Desktop app**, then download its JSON file.
+   Do not commit this file.
+
+The app requests only `https://www.googleapis.com/auth/calendar.events`, which permits it to create and read events.
+Google's [Calendar Python quickstart](https://developers.google.com/workspace/calendar/api/quickstart/python) documents
+the required client libraries and desktop OAuth client; the [installed-app OAuth guide](https://developers.google.com/identity/protocols/oauth2/native-app)
+documents the loopback callback flow used below.
+
+### First-time OAuth on Reachy Mini Wireless
+
+Run these commands from the laptop. They store both the downloaded OAuth client configuration and the refreshable
+token only on the robot, under `/home/pollen/.local/share/reachy_duck/google/`, with owner-only permissions. Replace
+the local path with the downloaded file's actual name.
+
+```bash
+ROBOT_HOST=reachy-mini.local
+GOOGLE_CLIENT_JSON="$HOME/Downloads/client_secret_desktop.json"
+
+ssh "pollen@${ROBOT_HOST}" "install -d -m 700 /home/pollen/.local/share/reachy_duck/google"
+scp "${GOOGLE_CLIENT_JSON}" "pollen@${ROBOT_HOST}:/home/pollen/.local/share/reachy_duck/google/client_secret.json"
+ssh "pollen@${ROBOT_HOST}" "chmod 600 /home/pollen/.local/share/reachy_duck/google/client_secret.json"
+
+ssh -L 8080:127.0.0.1:8080 "pollen@${ROBOT_HOST}" \
+  "/venvs/apps_venv/bin/reachy-duck google-auth --port 8080"
+```
+
+The last command prints a Google authorization URL. Open it in the laptop browser, select the intended account, and
+accept the Calendar permission. Keep the SSH command running until it reports that the token was stored. The browser's
+`127.0.0.1:8080` callback travels through the SSH tunnel to the authorization process on the robot. Future app starts
+reuse and silently refresh `token.json`; re-run this command only after revoking access, changing OAuth clients/scopes,
+or an authorization failure.
+
+After a source deployment, install the new dependencies before authorizing:
+
+```bash
+ssh "pollen@${ROBOT_HOST}" \
+  "/venvs/apps_venv/bin/python -m pip install -e /home/pollen/reachy_duck"
+```
+
+Example voice checks:
+
+- `Remind me tomorrow at 19:00 to buy milk.`
+- `I have the dentist Friday at 18:00.`
+- `What do I have tomorrow?`
+- `Write down that I need milk.`
+- `Remember that I use pytest.`
+
+For a materially ambiguous request, Reachy should ask one short clarification before creating an event. It should not
+create an event for ordinary notes.
+
 Stop the app when the test is complete:
 
 ```bash

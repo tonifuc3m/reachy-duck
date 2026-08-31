@@ -75,6 +75,20 @@ def main() -> None:
         except Exception as exc:
             logger.error("tool-spaces command failed: %s", exc)
             raise SystemExit(1) from exc
+    if args.command == "google-auth":
+        from reachy_duck.google_calendar import CalendarError, authorize_google_calendar
+
+        logger = setup_logger(args.debug)
+        try:
+            token_path = authorize_google_calendar(
+                instance_path=persistent_data_directory().parent,
+                port=args.port,
+            )
+        except CalendarError as exc:
+            logger.error("Google Calendar authorization failed: %s", exc)
+            raise SystemExit(1) from exc
+        print(f"Google Calendar authorized. Token stored at {token_path}")
+        return
     run(args)
 
 

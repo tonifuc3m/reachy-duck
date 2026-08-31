@@ -46,6 +46,13 @@ def parse_args() -> tuple[argparse.Namespace, list]:  # type: ignore
     remove_parser.add_argument("space_slug", help="Installed Hugging Face Space slug in the form owner/space-name")
 
     tool_spaces_subparsers.add_parser("list", help="List installed Space tool sources")
+    google_auth_parser = subparsers.add_parser("google-auth", help="Authorize Google Calendar access for this app")
+    google_auth_parser.add_argument(
+        "--port",
+        type=int,
+        default=8080,
+        help="Local OAuth callback port; use the same port in an SSH tunnel (default: 8080).",
+    )
     return parser.parse_known_args()
 
 
