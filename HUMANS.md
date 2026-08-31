@@ -15,7 +15,7 @@ curl --fail --silent --show-error -X POST "http://${ROBOT_HOST}:8000/api/apps/st
 curl --fail --silent --show-error -X POST "http://${ROBOT_HOST}:8000/api/apps/start-app/reachy_duck"
 
 # Comprueba el estado.
-curl --fail --silent --show-error "http://${ROBOT_HOST}:8000/api/apps/current-app-status"
+curl --fail --silent --show-error "http://${ROBOT_HOST}:8000/api/apps/current-app-status" | jq .
 ```
 
 Espera a que Reachy salude. Si quieres ver los logs mientras arranca, abre otra terminal:

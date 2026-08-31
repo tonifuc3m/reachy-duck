@@ -90,6 +90,21 @@ The final command must print `['reachy_duck']`.
 If `rsync` is unavailable, copy the checkout with `scp`, then run the same `pip install -e` command. Do not copy a real
 `.env` file from the laptop.
 
+### Configure the app timezone
+
+Set the app's timezone explicitly on Reachy so relative dates, spoken times, and Calendar operations do not depend on
+the robot OS timezone. The normal setting for Spain is `Europe/Madrid`. If the private configuration does not exist,
+create it with owner-only permissions, then restart the app:
+
+```bash
+ssh "pollen@${ROBOT_HOST}" \
+  "umask 077; mkdir -p /home/pollen/.local/share/reachy_duck; test ! -e /home/pollen/.local/share/reachy_duck/.env && printf 'REACHY_DUCK_TIMEZONE=Europe/Madrid\\n' > /home/pollen/.local/share/reachy_duck/.env"
+curl --fail --silent --show-error -X POST "http://${ROBOT_HOST}:8000/api/apps/restart-current-app"
+```
+
+If the private `.env` already contains settings such as `HF_TOKEN`, edit it to add or change the timezone line; do not
+replace the file and lose those settings. Use another IANA timezone name when Reachy is used elsewhere.
+
 ### Optional Hugging Face authentication
 
 Skip this for the first attempt. If the app logs show an authentication error, save a token in the app's private
@@ -99,7 +114,7 @@ instance configuration on Reachy. Do not commit the token:
 ssh "pollen@${ROBOT_HOST}" "mkdir -p /home/pollen/.local/share/reachy_duck"
 read -rsp "Hugging Face token: " HF_TOKEN && printf '\n'
 printf 'HF_REALTIME_CONNECTION_MODE=deployed\nHF_TOKEN=%s\n' "${HF_TOKEN}" | \
-  ssh "pollen@${ROBOT_HOST}" "umask 077; cat > /home/pollen/.local/share/reachy_duck/.env"
+  ssh "pollen@${ROBOT_HOST}" "umask 077; cat >> /home/pollen/.local/share/reachy_duck/.env"
 unset HF_TOKEN
 ```
 
@@ -223,7 +238,8 @@ ssh "pollen@${ROBOT_HOST}" 'date; timedatectl; systemctl status systemd-timesync
 
 After a reboot, run the same command again. If the robot booted without internet, `System clock synchronized: no` can
 be temporary; the app still uses its local system clock, but the answer can only be as accurate as that clock. Configure
-`REACHY_DUCK_TIMEZONE=Europe/Madrid` explicitly when the desired interpretation differs from the robot OS timezone.
+`REACHY_DUCK_TIMEZONE=Europe/Madrid` explicitly as described above when the desired interpretation differs from the
+robot OS timezone.
 
 Physical voice checks:
 
