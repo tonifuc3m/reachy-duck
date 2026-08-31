@@ -5,8 +5,6 @@ import logging
 from typing import Any, TypeVar
 from collections.abc import Callable, Awaitable, Coroutine
 
-from reachy_mini.io.jsonrpc import JsonRpcError
-from reachy_mini.apps.jsonrpc_server import JsonRpcServer
 from reachy_duck.config import (
     LOCKED_PROFILE,
     config,
@@ -27,6 +25,7 @@ from reachy_duck.profile_store import (
     normalize_tool_names,
     canonical_profile_name,
 )
+from reachy_duck.jsonrpc_compat import JsonRpcError, JsonRpcServer
 from reachy_duck.profile_toolsets import (
     read_profile_tool_override,
 )

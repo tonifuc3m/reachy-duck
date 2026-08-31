@@ -15,8 +15,6 @@ from collections.abc import Callable
 import numpy as np
 
 from reachy_mini import ReachyMini
-from reachy_mini.io.jsonrpc import JsonRpcError
-from reachy_mini.apps.jsonrpc_server import JsonRpcServer
 from reachy_mini.media.media_manager import MediaBackend
 from reachy_duck.config import (
     HF_BACKEND,
@@ -39,6 +37,7 @@ from reachy_duck.config import (
 )
 from reachy_duck.prompts import get_session_voice, get_session_instructions
 from reachy_duck.streaming import AdditionalOutputs, audio_to_float32
+from reachy_duck.jsonrpc_compat import JsonRpcError, JsonRpcServer
 from reachy_duck.startup_settings import read_startup_settings, write_startup_settings
 from reachy_duck.tools.core_tools import initialize_tools
 from reachy_duck.tool_space_routes import register_tool_space_methods

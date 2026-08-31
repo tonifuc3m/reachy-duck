@@ -6,7 +6,6 @@ from typing import Any
 from pathlib import Path
 from collections.abc import Callable
 
-from reachy_mini.apps.jsonrpc_server import JsonRpcServer
 from reachy_duck.config import LOCKED_PROFILE, config
 from reachy_duck.personality import AvailableTool, list_personalities, available_tool_catalog
 from reachy_duck.profile_store import (
@@ -20,6 +19,7 @@ from reachy_duck.tool_settings import (
     apply_tool_change,
     raise_tool_settings_error,
 )
+from reachy_duck.jsonrpc_compat import JsonRpcServer
 from reachy_duck.profile_toolsets import (
     read_profile_tool_override,
     clear_profile_tool_override,
