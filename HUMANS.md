@@ -38,3 +38,30 @@ Para comprobar que se detuvo:
 ```bash
 curl --fail --silent --show-error "http://${ROBOT_HOST}:8000/api/apps/current-app-status"
 ```
+
+## Apagar Reachy Mini Wireless completamente
+
+Primero detén Reachy Duck:
+
+```bash
+ROBOT_HOST=reachy-mini.local
+
+curl --fail --silent --show-error -X POST \
+  "http://${ROBOT_HOST}:8000/api/apps/stop-current-app"
+```
+
+Después apaga Linux de forma segura:
+
+```bash
+ssh "pollen@${ROBOT_HOST}" "sudo poweroff"
+```
+
+También puedes usar:
+
+```bash
+ssh "pollen@${ROBOT_HOST}" "sudo shutdown -h now"
+```
+
+Después de esto, espera a que el robot termine de apagarse antes de desconectar alimentación.
+
+No conviene cortar la corriente directamente mientras Linux está funcionando.
