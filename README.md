@@ -18,9 +18,9 @@ Customize `profiles/_reachy_duck_locked_profile/profile.md` to change the assist
 Add custom tools under `src/reachy_duck/tools/` by subclassing `Tool`.
 
 Reachy is configured as a voice-first rubber-duck programming companion. Long-term internal memory is stored in
-`data/MEMORY.md`, while user-facing timestamped notes are stored in `data/NOTES.md`. App launcher instances keep the
-same files under their instance-specific `data/` directory. The `remember`, `add_note`, and `read_notes` tools do not
-depend on a robot or daemon.
+`data/MEMORY.md`, while user-facing timestamped notes are stored in `data/NOTES.md`. A Wireless daemon-launched app uses
+`${XDG_DATA_HOME:-~/.local/share}/reachy_duck/data/`, outside replaceable package files. The `remember`, `forget`,
+`add_note`, and `read_notes` storage behavior does not depend on a robot or daemon.
 
 The storage layer can be verified directly from an activated development environment:
 
@@ -123,8 +123,8 @@ curl --fail --silent --show-error "http://${ROBOT_HOST}:8000/api/apps/current-ap
 
 Wait for logs containing `Realtime session updated successfully`. Reachy should give a short greeting. Speak near its
 microphone and verify that Reachy answers through its speaker. Run with debug logging if you need the journal to include
-`User transcript` and `Assistant transcript` lines; normal logs still show turn latency and tool calls. The app UI is
-also available at `http://reachy-mini.local:7860/` while it runs.
+`User transcript` and `Assistant transcript` lines; normal logs still show turn latency and tool calls. The physical
+voice test does not require the generated web page.
 
 If the speaker is too quiet or the microphone gain is too low, set either to a value from 0 to 100 before retrying:
 
@@ -192,9 +192,5 @@ curl --fail --silent --show-error -X POST "http://${ROBOT_HOST}:8000/api/apps/st
 - Memory is not used immediately after `remember`: restart the app; memory is intentionally loaded when a new realtime
   session starts rather than rebuilding the prompt after every tool call.
 
-Do not forget to customize:
-- this `README.md` file
-- the `index.html` file (Hugging Face Spaces landing page)
-- the `src/reachy_duck/static/index.html` (the web app parameters page)
-
-The original README from the conversation app is available in `README_OLD.md`.
+`README_OLD.md` is an archived copy of the upstream conversation-template documentation. It is retained for reference;
+commands and storage details there may not apply to this locked Reachy Duck app.
