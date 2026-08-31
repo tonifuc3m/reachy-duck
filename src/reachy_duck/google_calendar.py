@@ -1,14 +1,17 @@
 """Google Calendar persistence and API access, independent of Reachy hardware."""
 
 from __future__ import annotations
-import os
 import logging
 from typing import Any, Protocol, cast
 from pathlib import Path
 from datetime import datetime, timedelta
-from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
+from zoneinfo import ZoneInfo
 
 from reachy_duck.memory import persistent_data_directory
+from reachy_duck.time_context import (
+    TimeContextError,
+    current_timezone,
+)
 
 
 logger = logging.getLogger(__name__)
@@ -17,8 +20,6 @@ GOOGLE_DIRECTORY_NAME = "google"
 CLIENT_SECRET_FILENAME = "client_secret.json"
 TOKEN_FILENAME = "token.json"
 CALENDAR_SCOPE = "https://www.googleapis.com/auth/calendar.events"
-DEFAULT_TIMEZONE = "Europe/Madrid"
-TIMEZONE_ENV = "REACHY_DUCK_TIMEZONE"
 DEFAULT_EVENT_DURATION = timedelta(minutes=30)
 
 
@@ -50,14 +51,11 @@ def token_path_for_instance(instance_path: str | Path | None = None) -> Path:
 
 
 def resolve_timezone(timezone_name: str | None = None) -> ZoneInfo:
-    """Resolve an explicit IANA timezone, defaulting from documented configuration."""
-    if timezone_name is not None and not isinstance(timezone_name, str):
-        raise CalendarError("timezone must be an IANA timezone name")
-    name = timezone_name or os.getenv(TIMEZONE_ENV) or DEFAULT_TIMEZONE
+    """Compatibility wrapper around the shared temporal timezone resolver."""
     try:
-        return ZoneInfo(name)
-    except ZoneInfoNotFoundError as exc:
-        raise CalendarError(f"unknown timezone: {name}") from exc
+        return current_timezone(timezone_name)
+    except TimeContextError as exc:
+        raise CalendarError(str(exc)) from exc
 
 
 def parse_aware_datetime(value: str, *, timezone: ZoneInfo) -> datetime:

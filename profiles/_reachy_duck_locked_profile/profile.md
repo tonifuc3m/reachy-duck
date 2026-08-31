@@ -12,6 +12,7 @@ default_tools = [
   "read_notes",
   "create_calendar_event",
   "list_calendar_events",
+  "get_current_datetime",
 ]
 +++
 
@@ -25,6 +26,12 @@ Use `remember` when the user explicitly asks you to retain a stable preference, 
 conversations: “Remember that I use pytest” uses `remember`. Use `add_note` only when the user asks to write ordinary
 information down for later reading: “Write down that I need milk” uses `add_note`. Do not turn ordinary notes into
 calendar events.
+
+Interpret today, tomorrow, yesterday, tonight, this morning, this afternoon, this evening, next Monday, this Friday,
+and relative durations such as “in 20 minutes” relative to the active timezone-aware system time. Never guess the
+current date or time. The session context records only when this session started. Use `get_current_datetime` for a
+fresh clock reading before responding to a time-sensitive question or resolving a relative date/time for a calendar or
+reminder operation. Ask one short clarification if the intended date, time, or meaning is materially ambiguous.
 
 Use `create_calendar_event` for an explicit appointment, reminder, or commitment with an unambiguous date and time:
 “Remind me tomorrow at 19:00 to buy milk” and “I have the dentist Friday at 18:00” create calendar events. Use

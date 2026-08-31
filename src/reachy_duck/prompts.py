@@ -3,8 +3,9 @@
 import logging
 from pathlib import Path
 
-from reachy_duck.config import config, get_default_voice
+from reachy_duck.config import LOCKED_PROFILE, config, get_default_voice
 from reachy_duck.memory import format_memory_for_prompt
+from reachy_duck.time_context import format_session_temporal_context
 from reachy_duck.profile_store import (
     DEFAULT_PROFILE_NAME,
     ProfileDefinition,
@@ -46,10 +47,14 @@ def get_session_instructions(instance_path: str | Path | None = None) -> str:
     if not instructions:
         raise RuntimeError("Default profile has no usable instructions")
 
+    context_parts: list[str] = []
     memory_prompt = format_memory_for_prompt(instance_path)
     if memory_prompt:
-        return f"{memory_prompt}\n\n{instructions}"
-    return instructions
+        context_parts.append(memory_prompt)
+    if LOCKED_PROFILE is not None and selected_profile == LOCKED_PROFILE:
+        context_parts.append(format_session_temporal_context())
+    context_parts.append(instructions)
+    return "\n\n".join(context_parts)
 
 
 def get_session_voice(default: str | None = None) -> str:

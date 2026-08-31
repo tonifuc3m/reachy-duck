@@ -197,6 +197,37 @@ Google's [Calendar Python quickstart](https://developers.google.com/workspace/ca
 the required client libraries and desktop OAuth client; the [installed-app OAuth guide](https://developers.google.com/identity/protocols/oauth2/native-app)
 documents the loopback callback flow used below.
 
+## Time and timezone
+
+Reachy obtains temporal context from the Wireless system clock, never from model knowledge. Set
+`REACHY_DUCK_TIMEZONE` in the private instance `.env` to an IANA name such as `Europe/Madrid`. When it is unset or
+invalid, Reachy uses the host's detectable IANA timezone and finally falls back to `Europe/Madrid`. This setting also
+controls how Google Calendar timestamps are interpreted; a different robot OS timezone without an explicit app setting
+can therefore change date boundaries and relative-date interpretation.
+
+At each new realtime session, Reachy receives a timestamped local context. For a live time question or a relative
+calendar operation, it calls its local `get_current_datetime` tool for a fresh reading before reasoning about the date.
+
+### Verify the Wireless clock
+
+These read-only diagnostics should show a synchronized clock and the intended OS timezone:
+
+```bash
+ROBOT_HOST=reachy-mini.local
+ssh "pollen@${ROBOT_HOST}" 'date; timedatectl; systemctl status systemd-timesyncd --no-pager'
+```
+
+After a reboot, run the same command again. If the robot booted without internet, `System clock synchronized: no` can
+be temporary; the app still uses its local system clock, but the answer can only be as accurate as that clock. Configure
+`REACHY_DUCK_TIMEZONE=Europe/Madrid` explicitly when the desired interpretation differs from the robot OS timezone.
+
+Physical voice checks:
+
+- `What time is it?` — Reachy obtains a fresh local clock reading and replies naturally.
+- `What day is it?` — Reachy uses the local date and weekday.
+- `What day is tomorrow?` — Reachy resolves tomorrow from fresh timezone-aware time.
+- `How long until 6 PM?` — Reachy obtains fresh time, resolves the next applicable 18:00 locally, and calculates the interval.
+
 ### First-time OAuth on Reachy Mini Wireless
 
 Run these commands from the laptop. They store both the downloaded OAuth client configuration and the refreshable
