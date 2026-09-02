@@ -143,6 +143,7 @@ def run(
         get_hf_connection_selection().mode,
     )
 
+    from reachy_duck.timers import TimerManager
     from reachy_duck.console import LocalStream
     from reachy_duck.tools.core_tools import ToolDependencies
     from reachy_duck.conversation_handler import ConversationHandler
@@ -174,12 +175,14 @@ def run(
     app_lifecycle.wake_up_if_sleeping(robot, logger)
 
     movement_manager = MovementManager(current_robot=robot)
+    timer_manager = TimerManager()
 
     deps = ToolDependencies(
         reachy_mini=robot,
         movement_manager=movement_manager,
         instance_path=instance_path,
         camera_enabled=not args.no_camera,
+        timer_manager=timer_manager,
     )
 
     def build_handler(startup_voice: Optional[str] = None) -> ConversationHandler:
@@ -193,11 +196,13 @@ def run(
             else "Hugging Face session proxy"
         )
         logger.info("Using Hugging Face realtime handler (%s)", transport_label)
-        return HuggingFaceRealtimeHandler(
+        handler = HuggingFaceRealtimeHandler(
             deps,
             instance_path=instance_path,
             startup_voice=startup_voice,
         )
+        timer_manager.set_announcer(handler.say)
+        return handler
 
     handler = build_handler(startup_settings.voice)
 

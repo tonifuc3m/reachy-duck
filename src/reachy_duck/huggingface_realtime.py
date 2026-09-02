@@ -825,6 +825,9 @@ class HuggingFaceRealtimeHandler(ConversationHandler):
                         self._in_flight_tool_calls.clear()
                         self._tool_batch_needs_response = False
 
+                        if self.deps.timer_manager is not None:
+                            await self.deps.timer_manager.announce_pending()
+
                         await self.output_queue.put(AdditionalOutputs({"role": "user", "content": transcript}))
                         self._emit_transcript("user", transcript, True)
 

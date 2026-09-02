@@ -22,6 +22,15 @@ Reachy is configured as a voice-first rubber-duck programming companion. Long-te
 `${XDG_DATA_HOME:-~/.local/share}/reachy_duck/data/`, outside replaceable package files. The `remember`, `forget`,
 `add_note`, and `read_notes` storage behavior does not depend on a robot or daemon.
 
+## Local timers
+
+Reachy can set, list, and cancel simple relative timers such as “set a timer for 10 minutes” or “tell me in 45 seconds
+to check the oven.” Timers are held only in the active app process: they survive conversation idle/active transitions,
+but are lost when Reachy Duck, its daemon, or the robot restarts. On expiry Reachy announces the timer through the
+existing realtime conversation when available; otherwise it retains one in-memory pending announcement for the next
+normal user turn. Relative timers do not handle calendar requests such as “tomorrow at 8”; use Google Calendar for
+those.
+
 The storage layer can be verified directly from an activated development environment:
 
 ```python
@@ -32,6 +41,14 @@ remember("I use pytest for this project")
 add_note("Buy milk tomorrow")
 print(read_notes())
 ```
+
+## Live robot status
+
+Reachy Duck can answer questions about its present daemon/backend readiness, motor mode, managed app holder,
+configured speaker and microphone volumes, WLAN IP, and daemon version through the read-only `get_robot_status` tool.
+On Wireless it queries the local daemon at `http://127.0.0.1:8000/api`; set `REACHY_DAEMON_API_BASE_URL` only when a
+different local development target is required. Battery level and charging are intentionally reported as unavailable:
+the supported daemon status API has no documented source for them.
 
 ## Daily use: wake and sleep
 
