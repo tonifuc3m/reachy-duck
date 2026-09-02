@@ -20,7 +20,7 @@ Add custom tools under `src/reachy_duck/tools/` by subclassing `Tool`.
 Reachy is configured as a voice-first rubber-duck programming companion. Long-term internal memory is stored in
 `data/MEMORY.md`, while user-facing timestamped notes are stored in `data/NOTES.md`. A Wireless daemon-launched app uses
 `${XDG_DATA_HOME:-~/.local/share}/reachy_duck/data/`, outside replaceable package files. The `remember`, `forget`,
-`add_note`, and `read_notes` storage behavior does not depend on a robot or daemon.
+`add_note`, `read_notes`, and `search_notes` storage behavior does not depend on a robot or daemon.
 
 ## Local timers
 
@@ -35,11 +35,14 @@ The storage layer can be verified directly from an activated development environ
 
 ```python
 from reachy_duck.memory import remember
-from reachy_duck.notes import add_note, read_notes
+from reachy_duck.calculator import calculate
+from reachy_duck.notes import add_note, read_notes, search_notes
 
 remember("I use pytest for this project")
 add_note("Buy milk tomorrow")
 print(read_notes())
+print(search_notes("milk"))
+print(calculate("17 / 100 * 850"))
 ```
 
 ## Live robot status
