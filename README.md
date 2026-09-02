@@ -172,10 +172,10 @@ acceptance test.
 
 ### Public web search (optional)
 
-Reachy can search and read public HTML/text pages for current information. It uses the [Brave Search API](https://api.search.brave.com/), which requires an API key kept only in Reachy's private instance configuration. Create a key in Brave's dashboard, then add this line to `/home/pollen/.local/share/reachy_duck/.env` on the robot (do not commit or copy the key into this repository):
+Reachy can search and read public HTML/text pages for current information. It uses [Tavily Search](https://www.tavily.com/pricing), whose Free plan provides 1,000 monthly credits without a credit card. Create an API key in the Tavily dashboard, then add this line to `/home/pollen/.local/share/reachy_duck/.env` on the robot (do not commit or copy the key into this repository):
 
 ```bash
-ssh "pollen@${ROBOT_HOST}" "umask 077; mkdir -p /home/pollen/.local/share/reachy_duck; printf 'BRAVE_SEARCH_API_KEY=replace-with-your-key\\n' >> /home/pollen/.local/share/reachy_duck/.env"
+ssh "pollen@${ROBOT_HOST}" "umask 077; mkdir -p /home/pollen/.local/share/reachy_duck; printf 'TAVILY_API_KEY=replace-with-your-key\\n' >> /home/pollen/.local/share/reachy_duck/.env"
 curl --fail --silent --show-error -X POST "http://${ROBOT_HOST}:8000/api/apps/restart-current-app"
 ```
 
@@ -281,7 +281,7 @@ curl --fail --silent --show-error -X POST "http://${ROBOT_HOST}:8000/api/volume/
 
 ### Verify public web browsing
 
-After configuring `BRAVE_SEARCH_API_KEY`, speak these concise checks:
+After configuring `TAVILY_API_KEY`, speak these concise checks:
 
 - `Search online for the official Reachy Mini documentation.`
 - `What's the latest Reachy Mini release?`
