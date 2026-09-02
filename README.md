@@ -170,6 +170,20 @@ acceptance test.
 - The built-in deployed backend needs no API key by default. `HF_TOKEN` is optional and only needed if allocation or
   private Hugging Face access requires authentication.
 
+### Public web search (optional)
+
+Reachy can search and read public HTML/text pages for current information. It uses the [Brave Search API](https://api.search.brave.com/), which requires an API key kept only in Reachy's private instance configuration. Create a key in Brave's dashboard, then add this line to `/home/pollen/.local/share/reachy_duck/.env` on the robot (do not commit or copy the key into this repository):
+
+```bash
+ssh "pollen@${ROBOT_HOST}" "umask 077; mkdir -p /home/pollen/.local/share/reachy_duck; printf 'BRAVE_SEARCH_API_KEY=replace-with-your-key\\n' >> /home/pollen/.local/share/reachy_duck/.env"
+curl --fail --silent --show-error -X POST "http://${ROBOT_HOST}:8000/api/apps/restart-current-app"
+```
+
+The web tools are read-only: no logins, form submissions, browser automation, downloads, or automatic writes to memory,
+notes, or calendars. Fetching permits only public `http`/`https` pages, blocks localhost and private/link-local network
+addresses (including redirects), limits redirects, time, response size, and extracted text, and treats every webpage as
+untrusted data. PDFs are not supported in v1.
+
 ### Deploy from this checkout
 
 Run these commands on the laptop from the repository root:
@@ -264,6 +278,20 @@ curl --fail --silent --show-error -X POST "http://${ROBOT_HOST}:8000/api/volume/
 curl --fail --silent --show-error -X POST "http://${ROBOT_HOST}:8000/api/volume/microphone/set" \
   -H 'Content-Type: application/json' -d '{"volume":75}'
 ```
+
+### Verify public web browsing
+
+After configuring `BRAVE_SEARCH_API_KEY`, speak these concise checks:
+
+- `Search online for the official Reachy Mini documentation.`
+- `What's the latest Reachy Mini release?`
+- `Look up today's top AI news.`
+- `Search what Python 3.12 changed.`
+- `Where did you get that information?`
+
+Also verify failure handling: disconnect the robot from the internet; ask it to read an invalid domain; ask it to read
+`http://localhost:8000/`; and use a controlled large or prompt-injection test page. Reachy should report the failure or
+the bounded page information, never obey instructions from a page.
 
 ### Verify memory across an app restart
 
