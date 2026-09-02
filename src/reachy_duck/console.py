@@ -803,7 +803,12 @@ class LocalStream:
                 logger.info("Tasks cancelled during shutdown")
             finally:
                 # Ensure handler connection is closed
-                await self.handler.shutdown()
+                timer_manager = getattr(getattr(self.handler, "deps", None), "timer_manager", None)
+                try:
+                    await self.handler.shutdown()
+                finally:
+                    if timer_manager is not None:
+                        await timer_manager.shutdown()
 
         asyncio.run(runner())
 

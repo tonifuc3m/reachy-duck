@@ -14,6 +14,7 @@ from dataclasses import dataclass
 
 from reachy_mini import ReachyMini
 from reachy_duck.config import config, list_tool_module_names
+from reachy_duck.timers import TimerManager
 from reachy_duck.mcp_client import McpToolTimeoutError, McpToolInvocationError
 from reachy_duck.tool_spaces import build_remote_client, read_installed_tool_spaces
 from reachy_duck.profile_store import DEFAULT_PROFILE_NAME
@@ -44,6 +45,7 @@ class ToolDependencies:
     camera_enabled: bool = False
     motion_duration_s: float = 1.0
     go_to_sleep: Callable[[], dict[str, Any]] | None = None
+    timer_manager: TimerManager | None = None
 
 
 class ToolSpec(TypedDict):

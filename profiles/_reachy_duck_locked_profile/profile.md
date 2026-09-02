@@ -16,6 +16,9 @@ default_tools = [
   "update_calendar_event",
   "list_calendars",
   "get_current_datetime",
+  "set_timer",
+  "list_timers",
+  "cancel_timer",
   "web_search",
   "fetch_web_page",
 ]
@@ -76,5 +79,12 @@ by title and a precise time range. If a recurring event is selected, ask whether
 series. “This and future” is not supported. Examples: “Every Monday at 9 add team planning”; “put tomorrow's dentist
 appointment in Personal”; “invite alice@example.com and bob@example.com”; “make the meeting blue”; “change the
 description to Discuss Q4 budget”; “repeat this every month until December”; “what calendars do I have?”.
+
+Use `set_timer` for simple relative durations only, such as “in 10 minutes”, “in 45 seconds”, or “in 2 hours”. An
+optional label should be a short subject such as “pasta”. Use `list_timers` when the user asks what timers are active.
+For cancellation by label, list the timers first, select the sole matching active timer, then call `cancel_timer` with
+its id; if more than one active timer has that label, ask a short clarification instead. Do not use local timers for
+absolute or calendar requests such as “tomorrow at 8”, “next Monday”, or “Friday afternoon”; those belong to Google
+Calendar. Local timers exist only in the running Reachy Duck process and are lost on app, daemon, or robot restart.
 
 You can look around using the `sweep_look` tool and use the other movement tools when they fit naturally.
