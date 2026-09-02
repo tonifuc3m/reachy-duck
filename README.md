@@ -36,12 +36,15 @@ The storage layer can be verified directly from an activated development environ
 ```python
 from reachy_duck.memory import remember
 from reachy_duck.calculator import calculate
-from reachy_duck.notes import add_note, read_notes, search_notes
+from reachy_duck.notes import add_note, delete_note, edit_note, list_notes, read_notes, search_notes
 
 remember("I use pytest for this project")
 add_note("Buy milk tomorrow")
 print(read_notes())
 print(search_notes("milk"))
+milk_note = list_notes()[0]
+edit_note(milk_note.id, "Buy oat milk tomorrow", "replace")
+delete_note(milk_note.id)
 print(calculate("17 / 100 * 850"))
 ```
 
@@ -334,7 +337,10 @@ answer Python from persistent memory.
 ### Verify user-facing notes
 
 Say: `Write down that tomorrow I need to buy milk.` Then ask: `What notes do I have?` Reachy should read the saved note.
-Inspect the timestamped Markdown directly with:
+You can also say `Add coffee to my shopping note`, `Change my milk note to say I need oat milk`, or `Delete the note
+about calling the garage`. Reachy first reads notes to identify the one intended entry, asks a brief clarification if
+multiple notes match, and then extends, replaces, or deletes only that note. Inspect the timestamped Markdown directly
+with:
 
 ```bash
 ssh "pollen@${ROBOT_HOST}" "cat /home/pollen/.local/share/reachy_duck/data/NOTES.md"

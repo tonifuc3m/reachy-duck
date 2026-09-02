@@ -117,7 +117,8 @@ async def test_add_note_appends_timestamped_markdown(tmp_path: Path) -> None:
 
     assert result == {"saved": "Tomorrow I am going grocery shopping."}
     assert re.fullmatch(
-        r"# Notes\n\n## \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC\n\n"
+        r"# Notes\n\n## \d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2} UTC\n"
+        r"<!-- note-id: note_[0-9a-f]{32} -->\n\n"
         r"Tomorrow I am going grocery shopping\.\n\n",
         notes,
     )
