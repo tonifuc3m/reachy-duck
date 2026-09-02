@@ -12,6 +12,8 @@ def test_locked_profile_exposes_explicit_sleep_tool_and_intent_guard() -> None:
     )
 
     assert "go_to_sleep" in profile.default_tools
+    assert "edit_note" in profile.default_tools
+    assert "delete_note" in profile.default_tools
     assert "Good night" in profile.instructions
     assert "You can sleep now" in profile.instructions
     assert "Stop for now" in profile.instructions
