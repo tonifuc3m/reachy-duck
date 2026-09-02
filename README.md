@@ -33,6 +33,14 @@ add_note("Buy milk tomorrow")
 print(read_notes())
 ```
 
+## Live robot status
+
+Reachy Duck can answer questions about its present daemon/backend readiness, motor mode, managed app holder,
+configured speaker and microphone volumes, WLAN IP, and daemon version through the read-only `get_robot_status` tool.
+On Wireless it queries the local daemon at `http://127.0.0.1:8000/api`; set `REACHY_DAEMON_API_BASE_URL` only when a
+different local development target is required. Battery level and charging are intentionally reported as unavailable:
+the supported daemon status API has no documented source for them.
+
 ## Daily use: wake and sleep
 
 On Reachy Mini Wireless, normal daily use does **not** shut down Linux. Power Reachy on once; the Wireless daemon
